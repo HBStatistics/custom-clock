@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centered Clock</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        #clock-container {
+            transform: scale(4);
+            transform-origin: top left;
+            /* Calculate negative margins */
+            margin-left: -800px; /* Keep the left position */
+            margin-top: -205px; /* Moved further north */
+        }
+    </style>
+</head>
+<body>
+    <div id="clock-container">
+        <iframe src="https://free.timeanddate.com/clock/i9tpm7dn/n911/fn2/fs48/tct/pct/ftb/th2" frameborder="0" width="322" height="70" allowtransparency="true"></iframe>
+    </div>
+</body>
+</html>
