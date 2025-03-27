@@ -3,28 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centered Clock</title>
+    <title>Odometer Clock (EST)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/themes/odometer-theme-default.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@900&display=swap" rel="stylesheet">
     <style>
+        .odometer.odometer-animating-up .odometer-ribbon-inner,
+        .odometer.odometer-animating-down.odometer-animating .odometer-ribbon-inner {
+            -webkit-transition-duration: 0.3s !important;
+            -moz-transition-duration: 0.3s !important;
+            -ms-transition-duration: 0.3s !important;
+            -o-transition-duration: 0.3s !important;
+            transition-duration: 0.3s !important;
+        }
+
+        .horloge-container {
+            font-size: 15em; /* Increased font size even more! */
+            display: flex;
+            align-items: center;
+            gap: 60px; /* Increased gap for better spacing */
+        }
+
+        .odometer {
+            font-weight: 900;
+            font-size: 1em; /* Relative to the container */
+        }
+
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            background-color: #f0f0f0;
         }
 
         #clock-container {
-            transform: scale(4);
+            position: relative;
+            transform: scale(1);
             transform-origin: top left;
-            /* Calculate negative margins */
-            margin-left: -800px; /* Keep the left position */
-            margin-top: -205px; /* Moved further north */
+            margin: 0;
+        }
+
+        #clock-overlay {
+            display: none;
+        }
+
+        .separator {
+            font-size: 1em; /* Relative to the container */
+            font-weight: 900;
         }
     </style>
 </head>
 <body>
     <div id="clock-container">
-        <iframe src="https://free.timeanddate.com/clock/i9tpm7dn/n911/fn2/fs48/tct/pct/ftb/th2" frameborder="0" width="322" height="70" allowtransparency="true"></iframe>
+        <div id="clock-overlay"></div>
+        <div class="horloge-container">
+            <div id="hours" class="odometer">00</div>
+            <div class="separator">:</div>
+            <div id="minutes" class="odometer">00</div>
+            <div class="separator">:</div>
+            <div id="seconds" class="odometer">00</div>
+        </div>
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/odometer.js/0.4.8/odometer.min.js"></script>
+    <script>
+        let previousSeconds = -1;
+        let previousMinutes = -1;
+        let previousHours = -1;
+
+        function updateClock() {
+            const now = new Date();
+
+            // Calculate the offset for EST (UTC-5 or UTC-4 depending on DST)
+            const estOffset = -5; // Standard Time (UTC-5)
+            const estOffsetDST = -4; // Daylight Saving Time (UTC-4)
+
+            // Check if Daylight Saving Time is in effect
+            const isDST = isDaylightSavingTime(now);
+            const offset = isDST ? estOffsetDST : estOffset;
+
+            // Get the UTC time
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+
+            // Calculate the EST time
+            const estTime = new Date(utc + (3600000 * offset));
+
+            // Get hours, minutes, and seconds from estTime
+            const hours = estTime.getHours().toString().padStart(2, '0');
+            const minutes = estTime.getMinutes().toString().padStart(2, '0');
+            const seconds = estTime.getSeconds().toString().padStart(2, '0');
+
+            const isNewMinute = parseInt(minutes) !== parseInt(previousMinutes);
+            const isNewHour = parseInt(hours) !== parseInt(previousHours);
+
+            // Check if seconds are decreasing (59 to 00) and it's not a new minute
+            if (previousSeconds !== -1 && parseInt(seconds) < parseInt(previousSeconds) && !isNewMinute) {
+                odometerSeconds.classList.add('odometer-animating-up');
+            } else {
+                odometerSeconds.classList.remove('odometer-animating-up');
+            }
+
+            // Check if minutes are decreasing (59 to 00)
+            if (previousMinutes !== -1 && parseInt(minutes) < parseInt(previousMinutes)) {
+                odometerMinutes.classList.add('odometer-animating-up');
+            } else {
+                odometerMinutes.classList.remove('odometer-animating-up');
+            }
+
+            // Check if hours are decreasing (23 to 00)
+            if (previousHours !== -1 && parseInt(hours) < parseInt(previousHours)) {
+                odometerHours.classList.add('odometer-animating-up');
+            } else {
+                odometerHours.classList.remove('odometer-animating-up');
+            }
+
+            odometerHours.innerHTML = hours;
+            odometerMinutes.innerHTML = minutes;
+            odometerSeconds.innerHTML = seconds;
+
+            previousSeconds = seconds;
+            previousMinutes = minutes;
+            previousHours = hours;
+        }
+
+        // Function to check if Daylight Saving Time is in effect
+        function isDaylightSavingTime(date) {
+            const year = date.getFullYear();
+            const jan = new Date(year, 0, 1);
+            const jul = new Date(year, 6, 1);
+            const stdOffset = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+            return date.getTimezoneOffset() < stdOffset;
+        }
+
+        const odometerHours = document.getElementById('hours');
+        const odometerMinutes = document.getElementById('minutes');
+        const odometerSeconds = document.getElementById('seconds');
+
+        updateClock(); // Update immediately
+        setInterval(updateClock, 1000); // Update every second
+    </script>
 </body>
 </html>
